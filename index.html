@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NPROSYS TECH – Enterprise GPT Demo</title>
+  <meta name="description" content="NPROSYS TECH — Enterprise GPT Assistants. TallyPrime Master, EazyKnow and Enterprise GPT demos." />
+
+  <!-- Use your original theme stylesheet (dark Digital India theme). -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ========== Google Analytics 4 (GA4) ========== -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EFPPVQCB5Z"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-EFPPVQCB5Z', { 'send_page_view': true, 'anonymize_ip': true });
+  </script>
+
+  <!-- Microsoft Clarity (ucjj02scs6) -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "ucjj02scs6");
+  </script>
+
+  <!-- Inline small theme tweaks: saffron primary buttons, pill style, floating launcher (blue default, saffron hover), modal styles -->
+  <style>
+    :root{
+      --saffron: #ff9933;
+      --saffron-dark: #e68800;
+      --chakra-blue: #1976d2; /* enforced chakra-blue for launcher */
+      --chakra-blue-dark: #0a4fa0;
+    }
+
+    /* Primary action button (saffron pill) */
+    .btn-primary, .open-tally, .open-eazyknow, .open-enterprisegpt {
+      background: var(--saffron) !important;
+      color: #050816 !important;
+      border: none !important;
+      border-radius: 999px !important;
+      padding: 10px 20px !important;
+      font-weight: 700 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+      text-decoration: none !important;
+    }
+    .btn-primary:hover, .open-tally:hover, .open-eazyknow:hover, .open-enterprisegpt:hover {
+      background: var(--saffron-dark) !important;
+      transform: translateY(-3px);
+      transition: all .14s ease;
+    }
+
+    /* Outline button style (keeps theme) */
+    .btn-outline {
+      background: transparent;
+      color: inherit;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight:700;
+    }
+    /* ===== Base: Make all Request Pilot buttons saffron pill ===== */
+    .request-pilot {
+      background: var(--saffron, #ff9933) !important;
+      color: #050816 !important;
+      border: none !important;
+      padding: 10px 18px !important;
+      border-radius: 999px !important;
+      font-weight: 700 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12) !important;
+      text-decoration: none !important;
+    }
+
+    .request-pilot:hover,
+    .request-pilot:focus {
+      background: var(--saffron-dark, #e68800) !important;
+      transform: translateY(-2px);
+      transition: all .14s ease;
+    }
+
+    .request-pilot.btn-outline {
+      border: none !important;
+      background: var(--saffron, #ff9933) !important;
+    }
+
+    @media (max-width:520px) {
+      .request-pilot { padding: 9px 14px !important; }
+    }
+
+    /* Floating launcher: Chakra Blue default, Saffron on hover (force with !important) */
+    #gpt-launcher {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background-color: var(--chakra-blue) !important;   /* Chakra Blue */
+      color: #ffffff !important;
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.28);
+      z-index: 9999;
+      transition: all 0.18s ease;
+    }
+    #gpt-launcher:hover {
+      background-color: var(--saffron) !important;  /* Saffron on hover */
+      color: #050816 !important;
+      transform: translateY(-3px);
+    }
+    @media (max-width:720px) {
+      #gpt-launcher { right:14px; bottom:16px; padding:10px 12px; }
+      #gpt-launcher .label { display:none; }
+    }
+
+    /* Restore outline style ONLY for card Request Pilot buttons */
+    .card .request-pilot {
+      background: transparent !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255,255,255,0.14) !important;
+      padding: 9px 18px !important;
+      border-radius: 12px !important;
+      font-weight: 700 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      box-shadow: none !important;
+      text-decoration: none !important;
+    }
+
+    .card .request-pilot:hover {
+      border-color: rgba(255,255,255,0.28) !important;
+      transform: translateY(-2px);
+      transition: all .16s ease;
+    }
+
+    /* Footer CTA button — saffron pill */
+    .footer-cta .request-pilot {
+      background: var(--saffron, #ff9933) !important;
+      color: #050816 !important;
+      border: none !important;
+      border-radius: 999px !important;
+      padding: 12px 20px !important;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+    }
+
+    /* === Pilot Request Modal styles === */
+    #pilotModalBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4,6,12,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10050;
+    }
+    #pilotModalBackdrop.open { display:flex; }
+
+    #pilotModal {
+      width: 96%;
+      max-width: 560px;
+      background: var(--card-bg, #0f172a);
+      color: var(--text-main, #f9fafb);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 18px 48px rgba(2,6,23,0.6);
+      transform: translateY(-6px);
+    }
+    #pilotModal form { display:flex; flex-direction:column; gap:10px; }
+    #pilotModal label { font-size:13px; color:var(--text-muted,#cbd5f5); }
+    #pilotModal input, #pilotModal textarea {
+      padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02); color: var(--text-main,#fff); outline:none;
+    }
+    #pilotModal textarea { min-height:96px; resize:vertical; }
+    #pilotModal .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+    #pilotModal .status { font-size:13px; color:var(--text-muted,#9aa4b2); margin-top:6px; }
+    @media (max-width:520px) { #pilotModal { padding:14px; margin:12px; } }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo-wrap">
+      <img src="assets/logo_nprosystech.png" alt="NPROSYS TECH Logo" class="logo" />
+      <div class="brand-text">
+        <h1>NPROSYS TECH</h1>
+        <p>Enterprise GPT • AI Assistants for Indian Businesses</p>
+      </div>
+    </div>
+    <div class="tagline">AI That Understands Indian Business · Digital India · Bharat Future</div>
+  </header>
+
+  <!-- Main content -->
+  <main>
+    <!-- Hero: left text, right video -->
+    <section class="hero">
+      <div class="hero-text">
+        <h2>Enterprise GPT — Transform SOPs into 24×7 Assistants</h2>
+        <p class="lead">
+          Enterprise GPT converts company documents, SOPs and service workflows
+          into a 24×7 multilingual AI assistant for employees and customers.
+        </p>
+
+        <ul>
+          <li>Multi-language support: English, Hindi, Kannada (extendable)</li>
+          <li>Employee onboarding, service workflows & product support</li>
+          <li>Integrations: WhatsApp, email, knowledge base & SOP ingestion</li>
+        </ul>
+
+        <p style="margin-top:14px;">
+          <button class="btn-outline request-pilot">Request Pilot</button>
+          <a href="#pilot" class="btn-primary" style="margin-left:10px; text-decoration:none;">Explore Products & Demo</a>
+        </p>
+      </div>
+
+      <div class="hero-video">
+        <h3>Watch the 3-minute Demo</h3>
+        <div class="demo-video-surface">
+          <video class="demo-video" controls playsinline preload="metadata" poster="">
+            <source src="videos/video_nprosys.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <!-- Products & Demo (with special background) -->
+    <section id="pilot" class="info-section products-demo-section">
+      <h3>Products & Demo</h3>
+      <p class="muted">TallyPrime Master and EazyKnow are ready products. Enterprise GPT is the demo/pilot — open any assistant to try it (opens in a new window).</p>
+
+      <div class="info-grid">
+        <!-- TallyPrime Master -->
+        <div class="card">
+          <img src="assets/logo_nprosystech.png" alt="TallyPrime Master logo" style="height:48px;margin-bottom:10px;">
+          <h4>TallyPrime Master (Bharat)</h4>
+          <p>AI TallyPrime Support — GST fixes, invoice & banking guidance, and Tally workflows. Use the floating Tally GPT button at bottom-right to try it now or open via the button below.</p>
+          <p style="margin-top:10px;">
+            <button class="btn-primary open-tally" onclick="trackTallyGPTClick(); window.open('https://chatgpt.com/g/g-691862ae9c6881918c3500d01ef3baf0-tallyprime-master-bharat-ai-tallyprime-support','_blank','width=430,height=680')">Open TallyPrime Master</button>
+            <button class="btn-outline request-pilot" style="margin-left:8px;">Request Pilot</button>
+          </p>
+        </div>
+
+        <!-- EazyKnow -->
+        <div class="card">
+          <img src="assets/logo_eazyknow.png" alt="EazyKnow logo" style="height:48px;margin-bottom:10px;">
+          <h4>EazyKnow — Everyday Life Assistant</h4>
+          <p>Your everyday AI assistant for daily tasks, productivity, quick answers, planning, and personal help.</p>
+          <p style="margin-top:10px;">
+            <button class="btn-primary open-eazyknow">Open EazyKnow</button>
+            <button class="btn-outline request-pilot" style="margin-left:8px;">Request Pilot</button>
+          </p>
+        </div>
+
+        <!-- Enterprise GPT -->
+        <div class="card">
+          <img src="assets/logo_enterprise.png" alt="Enterprise GPT logo" style="height:48px;margin-bottom:10px;">
+          <h4>Enterprise GPT — Demo / Pilot</h4>
+          <p>Demo assistant for enterprise knowledge, SOP automation and internal support workflows.</p>
+          <p style="margin-top:10px;">
+            <button class="btn-primary open-enterprisegpt">Open Enterprise GPT</button>
+            <button class="btn-outline request-pilot" style="margin-left:8px;">Request Pilot</button>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Info / Details -->
+    <section class="info-grid">
+      <div class="card">
+        <h3>What Enterprise GPT Does</h3>
+        <p>It uses Retrieval-Augmented Generation (RAG) to answer questions from your own knowledge base – manuals, SOPs, policies, product guides and service processes – instead of guessing from the open internet.</p>
+      </div>
+      <div class="card">
+        <h3>Key Use Cases</h3>
+        <ul>
+          <li>Employee onboarding & training</li>
+          <li>Service & ticket workflow guidance</li>
+          <li>Product installation, usage & warranty Q&A</li>
+          <li>Professional email & WhatsApp replies</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Built by NPROSYS TECH</h3>
+        <p><strong>Founder:</strong> Manjunath S. Kalyankar<br>
+        <strong>Focus:</strong> Practical AI systems for Indian businesses<br>
+        <strong>Theme:</strong> AI for All · Digital India · Bharat Future</p>
+      </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="footer-cta">
+      <p>For pilots, collaborations or details, contact: <strong>nprosys@outlook.com</strong></p>
+      <p style="margin-top:10px;">
+        <button class="btn-primary request-pilot">Request a Pilot</button>
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    © <span id="year"></span> NPROSYS TECH · All rights reserved.
+  </footer>
+
+  <!-- Floating Tally GPT Launcher -->
+  <div id="gpt-launcher" role="button" aria-label="Open Tally GPT" title="Open Tally GPT">
+    <span style="font-size:18px;line-height:1">💬</span>
+    <span class="label" style="font-weight:800;font-size:15px">Tally GPT</span>
+  </div>
+
+  <!-- Pilot Request Modal -->
+  <div id="pilotModalBackdrop" aria-hidden="true">
+    <div id="pilotModal" role="dialog" aria-modal="true" aria-labelledby="pilotModalTitle">
+      <h3 id="pilotModalTitle" style="margin:0 0 6px">Request a Pilot / Demo</h3>
+      <p class="muted" style="margin:0 0 12px">Fill and submit — we will contact you within one working day.</p>
+
+      <form id="pilotForm" name="pilot-request" data-netlify="true">
+        <input type="hidden" name="form-name" value="pilot-request" />
+        <label for="p_name">Full name</label>
+        <input id="p_name" name="name" type="text" required placeholder="Your full name" />
+
+        <label for="p_email">Email</label>
+        <input id="p_email" name="email" type="email" required placeholder="you@example.com" />
+
+        <label for="p_phone">Phone</label>
+        <input id="p_phone" name="phone" type="tel" placeholder="+91 98xxxxxxx" />
+
+        <label for="p_company">Company / Organization</label>
+        <input id="p_company" name="company" type="text" placeholder="Company name (optional)" />
+
+        <label for="p_message">Short message / requirements</label>
+        <textarea id="p_message" name="message" placeholder="Tell us what you need..."></textarea>
+
+        <div class="modal-actions">
+          <button type="button" id="pilotCancel" class="btn-outline">Cancel</button>
+          <button type="submit" class="btn-primary">Send Request</button>
+        </div>
+
+        <div class="status" id="pilotStatus" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Runtime scripts -->
+  <script>
+    // Set year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+  <!-- ========== Analytics + GPT wiring + modal logic ========== -->
+  <script>
+    function sendEvent(name, params) {
+      params = params || {};
+      if (typeof gtag === 'function') { gtag('event', name, params); }
+      if (typeof clarity === 'function') { try { clarity('set', { [name]: params }); } catch(e){} }
+      console.log('Analytics event:', name, params);
+    }
+
+    function trackTallyGPTClick(){ sendEvent('tally_gpt_click',{event_category:'engagement',event_label:'Tally GPT Launcher',value:1}); }
+    function trackEazyKnowClick(){ sendEvent('eazyknow_gpt_click',{event_category:'engagement',event_label:'EazyKnow Launcher',value:1}); }
+    function trackEnterpriseGPTClick(){ sendEvent('enterprise_gpt_click',{event_category:'engagement',event_label:'Enterprise GPT Launcher',value:1}); }
+
+    (function(){
+      var vid = document.querySelector('.demo-video');
+      if (!vid) return;
+      vid.addEventListener('play', function(){ sendEvent('hero_video_play',{event_category:'engagement',event_label:'Hero Demo Video'}); });
+      var milestones=[0.25,0.5,0.75], reached={};
+      vid.addEventListener('timeupdate', function(){
+        if (!vid.duration || vid.duration === Infinity) return;
+        var p = vid.currentTime / vid.duration;
+        milestones.forEach(function(m){ if (p >= m && !reached[m]){ reached[m]=true; sendEvent('video_progress',{milestone:m,label:'Demo Video'}); } });
+      });
+    })();
+
+    (function(){
+      var gptLauncher = document.getElementById('gpt-launcher');
+      if (!gptLauncher) return;
+      gptLauncher.addEventListener('click', function(){
+        trackTallyGPTClick();
+        window.open(
+          'https://chatgpt.com/g/g-691862ae9c6881918c3500d01ef3baf0-tallyprime-master-bharat-ai-tallyprime-support',
+          '_blank',
+          'width=430,height=680,menubar=no,toolbar=no,location=no'
+        );
+      });
+    })();
+
+    document.addEventListener('DOMContentLoaded', function(){
+      document.querySelectorAll('.open-eazyknow').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          trackEazyKnowClick();
+          window.open('https://chatgpt.com/g/g-691c71484b58819182a7f9be8b90e7cc-eazyknow-everyday-life-assistant','_blank','width=430,height=680');
+        });
+      });
+
+      document.querySelectorAll('.open-enterprisegpt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          trackEnterpriseGPTClick();
+          window.open('https://chatgpt.com/g/g-691f2a6a44088191a8095bc33c5430ae-enterprise-gpt-nprosys-tech-demo','_blank','width=430,height=680');
+        });
+      });
+    });
+
+    (function(){
+      var modalBackdrop = document.getElementById('pilotModalBackdrop');
+      var modal = document.getElementById('pilotModal');
+      var form = document.getElementById('pilotForm');
+      var status = document.getElementById('pilotStatus');
+      var cancel = document.getElementById('pilotCancel');
+
+      function openPilotModal(sourceText) {
+        status.textContent = '';
+        form.reset();
+        if (sourceText) {
+          var msg = 'Requesting pilot for: ' + sourceText + '\n\n';
+          document.getElementById('p_message').value = msg;
+        }
+        modalBackdrop.classList.add('open');
+        modalBackdrop.setAttribute('aria-hidden', 'false');
+      }
+      function closePilotModal() {
+        modalBackdrop.classList.remove('open');
+        modalBackdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('.request-pilot').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          if (typeof sendEvent === 'function') sendEvent('pilot_request_click',{event_category:'engagement', event_label:'Pilot Request (modal)'});
+          var card = btn.closest('.card, article, .pilot-card');
+          var product = '';
+          if (card) {
+            var h = card.querySelector('h3, h4, h2, h1');
+            if (h) product = h.textContent.trim();
+          }
+          openPilotModal(product || 'Website - General');
+        });
+      });
+
+      cancel.addEventListener('click', closePilotModal);
+      modalBackdrop.addEventListener('click', function(e){
+        if (e.target === modalBackdrop) closePilotModal();
+      });
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        status.textContent = 'Sending…';
+        var fd = new FormData(form);
+
+        fetch('/', { method: 'POST', body: fd })
+          .then(function(res){
+            if (res.ok) return res.text();
+            throw new Error('Network response not OK');
+          })
+          .then(function(){
+            status.textContent = 'Request sent — we will contact you soon. Thank you!';
+            if (typeof sendEvent === 'function') sendEvent('pilot_request_submitted',{event_category:'engagement',event_label:'Pilot Form Submitted', value:1});
+            setTimeout(function(){ closePilotModal(); }, 1400);
+          })
+          .catch(function(err){
+            console.warn('Netlify form submit failed', err);
+            try {
+              var name = encodeURIComponent(form.name.value || '');
+              var email = encodeURIComponent(form.email.value || '');
+              var phone = encodeURIComponent(form.phone.value || '');
+              var company = encodeURIComponent(form.company.value || '');
+              var message = encodeURIComponent(form.message.value || '');
+              var mailto = 'mailto:nprosys@outlook.com'
+                         + '?subject=' + encodeURIComponent('Pilot request from website')
+                         + '&body=' + encodeURIComponent('Name: ')+name + '%0A' + encodeURIComponent('Email: ')+email + '%0A' + encodeURIComponent('Phone: ')+phone + '%0A' + encodeURIComponent('Company: ')+company + '%0A%0A' + message;
+              window.location.href = mailto;
+            } catch(e2){
+              status.textContent = 'Sorry — could not submit. Please email nprosys@outlook.com';
+            }
+          });
+      });
+    })();
+  </script>
+
+</body>
+</html>
