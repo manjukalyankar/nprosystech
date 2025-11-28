@@ -272,31 +272,135 @@
       <h3 id="pilotModalTitle" style="margin:0 0 6px">Request a Pilot / Demo</h3>
       <p class="muted" style="margin:0 0 12px">Fill and submit — we will contact you within one working day.</p>
 
-      <!-- Netlify form -->
-      <form id="pilotForm" name="pilot-request" data-netlify="true">
-        <input type="hidden" name="form-name" value="pilot-request" />
-        <label for="p_name">Full name</label>
-        <input id="p_name" name="name" type="text" required placeholder="Your full name" />
+      <!-- ===== Pilot Request form (Posts to Google Apps Script -> Sheet) ===== -->
+<form id="pilotForm" name="pilot-request" novalidate>
+  <input type="hidden" name="_source" value="Website - Modal" />
+  <!-- basic fields -->
+  <label for="p_name">Full name</label>
+  <input id="p_name" name="name" type="text" required placeholder="Your full name" />
 
-        <label for="p_email">Email</label>
-        <input id="p_email" name="email" type="email" required placeholder="you@example.com" />
+  <label for="p_email">Email</label>
+  <input id="p_email" name="email" type="email" required placeholder="you@example.com" />
 
-        <label for="p_phone">Phone</label>
-        <input id="p_phone" name="phone" type="tel" placeholder="+91 98xxxxxxx" />
+  <label for="p_phone">Phone</label>
+  <input id="p_phone" name="phone" type="tel" placeholder="+91 98xxxxxxx" />
 
-        <label for="p_company">Company / Organization</label>
-        <input id="p_company" name="company" type="text" placeholder="Company name (optional)" />
+  <label for="p_company">Company / Organization</label>
+  <input id="p_company" name="company" type="text" placeholder="Company name (optional)" />
 
-        <label for="p_message">Short message / requirements</label>
-        <textarea id="p_message" name="message" placeholder="Tell us what you need..."></textarea>
+  <label for="p_message">Short message / requirements</label>
+  <textarea id="p_message" name="message" placeholder="Tell us what you need..."></textarea>
 
-        <div class="modal-actions">
-          <button type="button" id="pilotCancel" class="btn-outline">Cancel</button>
-          <button type="submit" class="btn-primary">Send Request</button>
-        </div>
+  <!-- Honeypot anti-spam -->
+  <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+    <label>Leave this field blank</label>
+    <input name="_gotcha" tabindex="-1" autocomplete="off" />
+  </div>
 
-        <div class="status" id="pilotStatus" aria-live="polite"></div>
-      </form>
+  <div class="modal-actions">
+    <button type="button" id="pilotCancel" class="btn-outline">Cancel</button>
+    <button type="submit" class="btn-primary">Send Request</button>
+  </div>
+
+  <div class="status" id="pilotStatus" aria-live="polite"></div>
+</form>
+
+<script>
+(function(){
+  // ----- REPLACED: your Apps Script web app URL -----
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbwRjKlx6TybqRuJtSkU3b4m64g7YTF_Fq0DFLsf5vy0J0_e8HVvlCp5Ie2yXgwqtuOj/exec';
+
+  var form = document.getElementById('pilotForm');
+  var status = document.getElementById('pilotStatus');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    status.textContent = 'Sending…';
+
+    // client-side honeypot check
+    var gotcha = form.querySelector('[name=_gotcha]');
+    if (gotcha && gotcha.value) {
+      status.textContent = 'Submission blocked (spam)';
+      return;
+    }
+
+    // build payload
+    var payload = {
+      name: form.name.value || '',
+      email: form.email.value || '',
+      phone: form.phone.value || '',
+      company: form.company.value || '',
+      message: form.message.value || '',
+      product: window._prefillProduct || 'Website - General',
+      _source: document.querySelector('input[name=_source]') ? document.querySelector('input[name=_source]').value : '',
+      _ua: navigator.userAgent
+    };
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(res){
+      return res.json ? res.json() : res.text();
+    })
+    .then(function(data){
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch(e){}
+      }
+      if (data && data.success) {
+        status.textContent = 'Request sent — we will contact you soon. Thank you!';
+        form.reset();
+        // close modal after a short delay
+        setTimeout(function(){
+          var b = document.getElementById('pilotModalBackdrop');
+          if (b) b.classList.remove('open');
+        }, 1200);
+      } else {
+        status.textContent = (data && data.message) ? data.message : 'Could not send. Please try again or email nprosys@outlook.com';
+      }
+    })
+    .catch(function(err){
+      console.error('Submit error', err);
+      status.textContent = 'Network error — trying fallback mailto...';
+      setTimeout(function(){
+        var mailto = 'mailto:nprosys@outlook.com'
+                   + '?subject=' + encodeURIComponent('Pilot request from website')
+                   + '&body=' + encodeURIComponent('Name: ' + payload.name + '\nEmail: ' + payload.email + '\nPhone: ' + payload.phone + '\nCompany: ' + payload.company + '\nProduct: ' + payload.product + '\n\nMessage:\n' + payload.message);
+        window.location.href = mailto;
+      }, 800);
+    });
+  });
+
+  // --- Wire dynamic prefill: set window._prefillProduct when .request-pilot clicked ---
+  document.querySelectorAll('.request-pilot').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      var card = btn.closest('.card, article, .pilot-card');
+      var product = '';
+      if (card) {
+        var h = card.querySelector('h3, h4, h2, h1');
+        if (h) product = h.textContent.trim();
+      }
+      window._prefillProduct = product || 'Website - General';
+      // keep existing modal open logic intact (your other code opens the modal)
+    });
+  });
+
+  // Cancel button and backdrop close handlers (safe-guard: re-attach if not present)
+  var cancelBtn = document.getElementById('pilotCancel');
+  if (cancelBtn) cancelBtn.addEventListener('click', function(e){ e.preventDefault(); document.getElementById('pilotModalBackdrop').classList.remove('open'); });
+
+  var modalBackdrop = document.getElementById('pilotModalBackdrop');
+  if (modalBackdrop){
+    modalBackdrop.addEventListener('click', function(e){
+      if (e.target === modalBackdrop) modalBackdrop.classList.remove('open');
+    });
+  }
+
+})();
+</script>
+
     </div>
   </div>
 
