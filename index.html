@@ -336,42 +336,23 @@
       _ua: navigator.userAgent
     };
 
-    fetch(ENDPOINT, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(res){
-      return res.json ? res.json() : res.text();
-    })
-    .then(function(data){
-      if (typeof data === 'string') {
-        try { data = JSON.parse(data); } catch(e){}
-      }
-      if (data && data.success) {
-        status.textContent = 'Request sent — we will contact you soon. Thank you!';
-        form.reset();
-        // close modal after a short delay
-        setTimeout(function(){
-          var b = document.getElementById('pilotModalBackdrop');
-          if (b) b.classList.remove('open');
-        }, 1200);
-      } else {
-        status.textContent = (data && data.message) ? data.message : 'Could not send. Please try again or email nprosys@outlook.com';
-      }
-    })
-    .catch(function(err){
-      console.error('Submit error', err);
-      status.textContent = 'Network error — trying fallback mailto...';
-      setTimeout(function(){
-        var mailto = 'mailto:nprosys@outlook.com'
-                   + '?subject=' + encodeURIComponent('Pilot request from website')
-                   + '&body=' + encodeURIComponent('Name: ' + payload.name + '\nEmail: ' + payload.email + '\nPhone: ' + payload.phone + '\nCompany: ' + payload.company + '\nProduct: ' + payload.product + '\n\nMessage:\n' + payload.message);
-        window.location.href = mailto;
-      }, 800);
-    });
-  });
+    // QUICK FIX: no-cors optimistic POST
+fetch(ENDPOINT, {
+  method: 'POST',
+  mode: 'no-cors',            // <<--- allows the browser to send the request even without CORS headers
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+.then(function(){
+  // no reliable response due to no-cors; assume success
+  status.textContent = 'Request sent — we will contact you soon. Thank you!';
+  form.reset();
+  setTimeout(function(){ document.getElementById('pilotModalBackdrop').classList.remove('open'); }, 1200);
+})
+.catch(function(err){
+  console.error('Submit error', err);
+  status.textContent = 'Network error — please email nprosys@outlook.com';
+});
 
   // --- Wire dynamic prefill: set window._prefillProduct when .request-pilot clicked ---
   document.querySelectorAll('.request-pilot').forEach(function(btn){
@@ -554,4 +535,3 @@
 
 </body>
 </html>
-
