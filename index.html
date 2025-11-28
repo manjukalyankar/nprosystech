@@ -272,10 +272,12 @@
       <h3 id="pilotModalTitle" style="margin:0 0 6px">Request a Pilot / Demo</h3>
       <p class="muted" style="margin:0 0 12px">Fill and submit — we will contact you within one working day.</p>
 
-      <!-- ===== Pilot Request form (Posts to Google Apps Script -> Sheet) ===== -->
-<form id="pilotForm" name="pilot-request" novalidate>
+      <!-- ===== Pilot Request form (Hidden-iframe POST → avoids CORS) ===== -->
+<form id="pilotForm" name="pilot-request" action="https://script.google.com/macros/s/AKfycbw2IHA14G8Zo2iK9HLB9JW9shoNDBKPnEh09tB0wbz4GGiroAWULwZSXPZk7lABYWs-/exec" method="POST" target="pilot_iframe">
   <input type="hidden" name="_source" value="Website - Modal" />
-  <!-- basic fields -->
+  <!-- product hidden field will be set by JS -->
+  <input type="hidden" name="product" id="p_product" value="Website - General" />
+
   <label for="p_name">Full name</label>
   <input id="p_name" name="name" type="text" required placeholder="Your full name" />
 
@@ -305,60 +307,17 @@
   <div class="status" id="pilotStatus" aria-live="polite"></div>
 </form>
 
+<!-- hidden iframe target -->
+<iframe name="pilot_iframe" id="pilot_iframe" style="display:none;"></iframe>
+
 <script>
 (function(){
-  // ----- REPLACED: your Apps Script web app URL -----
-  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbwRjKlx6TybqRuJtSkU3b4m64g7YTF_Fq0DFLsf5vy0J0_e8HVvlCp5Ie2yXgwqtuOj/exec';
-
   var form = document.getElementById('pilotForm');
   var status = document.getElementById('pilotStatus');
+  var iframe = document.getElementById('pilot_iframe');
+  var productInput = document.getElementById('p_product');
 
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    status.textContent = 'Sending…';
-
-    // client-side honeypot check
-    var gotcha = form.querySelector('[name=_gotcha]');
-    if (gotcha && gotcha.value) {
-      status.textContent = 'Submission blocked (spam)';
-      return;
-    }
-
-    // build payload
-    var payload = {
-      name: form.name.value || '',
-      email: form.email.value || '',
-      phone: form.phone.value || '',
-      company: form.company.value || '',
-      message: form.message.value || '',
-      product: window._prefillProduct || 'Website - General',
-      _source: document.querySelector('input[name=_source]') ? document.querySelector('input[name=_source]').value : '',
-      _ua: navigator.userAgent
-    };
-
-   // QUICK FIX: no-cors optimistic POST (temporary)
-fetch(ENDPOINT, {
-  method: 'POST',
-  mode: 'no-cors',            // <<--- important: allows the browser to send the POST despite CORS
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-})
-.then(function(){
-  // with no-cors the response is opaque; assume it succeeded
-  status.textContent = 'Request sent — we will contact you soon. Thank you!';
-  form.reset();
-  setTimeout(function(){ 
-    var b = document.getElementById('pilotModalBackdrop');
-    if (b) b.classList.remove('open');
-  }, 1200);
-})
-.catch(function(err){
-  console.error('Submit error', err);
-  status.textContent = 'Network error — please email nprosys@outlook.com';
-});
-
-
-  // --- Wire dynamic prefill: set window._prefillProduct when .request-pilot clicked ---
+  // Set product hidden field whenever modal opens / button clicked
   document.querySelectorAll('.request-pilot').forEach(function(btn){
     btn.addEventListener('click', function(e){
       var card = btn.closest('.card, article, .pilot-card');
@@ -367,21 +326,48 @@ fetch(ENDPOINT, {
         var h = card.querySelector('h3, h4, h2, h1');
         if (h) product = h.textContent.trim();
       }
-      window._prefillProduct = product || 'Website - General';
-      // keep existing modal open logic intact (your other code opens the modal)
+      productInput.value = product || 'Website - General';
+      window._prefillProduct = productInput.value;
     });
   });
 
-  // Cancel button and backdrop close handlers (safe-guard: re-attach if not present)
+  // Cancel button
   var cancelBtn = document.getElementById('pilotCancel');
-  if (cancelBtn) cancelBtn.addEventListener('click', function(e){ e.preventDefault(); document.getElementById('pilotModalBackdrop').classList.remove('open'); });
+  if (cancelBtn) cancelBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('pilotModalBackdrop').classList.remove('open');
+  });
 
-  var modalBackdrop = document.getElementById('pilotModalBackdrop');
-  if (modalBackdrop){
-    modalBackdrop.addEventListener('click', function(e){
-      if (e.target === modalBackdrop) modalBackdrop.classList.remove('open');
-    });
-  }
+  // Before submit: quick client-side honeypot check & show sending
+  form.addEventListener('submit', function(e){
+    if (form._gotcha && form._gotcha.value) {
+      e.preventDefault();
+      status.textContent = 'Submission blocked (spam)';
+      return;
+    }
+    status.textContent = 'Sending…';
+    // Set a fallback timer: if iframe doesn't load in 8s, open mailto fallback
+    window.__pilot_iframe_timeout = setTimeout(function(){
+      status.textContent = 'Network issue — opening email fallback...';
+      var mailto = 'mailto:nprosys@outlook.com'
+                 + '?subject=' + encodeURIComponent('Pilot request from website')
+                 + '&body=' + encodeURIComponent('Name: ' + (form.name.value||'') + '\\nEmail: ' + (form.email.value||'') + '\\nPhone: ' + (form.phone.value||'') + '\\nCompany: ' + (form.company.value||'') + '\\nProduct: ' + (productInput.value||'') + '\\n\\nMessage:\\n' + (form.message.value||''));
+      window.location.href = mailto;
+    }, 8000);
+    // allow normal form submit to the hidden iframe
+  });
+
+  // When iframe loads, treat as success (clear timeout, show success)
+  iframe.addEventListener('load', function(){
+    clearTimeout(window.__pilot_iframe_timeout);
+    // small delay to ensure server processed
+    setTimeout(function(){
+      status.textContent = 'Request sent — we will contact you soon. Thank you!';
+      form.reset();
+      // close modal after brief pause
+      setTimeout(function(){ document.getElementById('pilotModalBackdrop').classList.remove('open'); status.textContent=''; }, 1200);
+    }, 400);
+  });
 
 })();
 </script>
@@ -539,4 +525,5 @@ fetch(ENDPOINT, {
 
 </body>
 </html>
+
 
