@@ -336,23 +336,27 @@
       _ua: navigator.userAgent
     };
 
-    // QUICK FIX: no-cors optimistic POST
+   // QUICK FIX: no-cors optimistic POST (temporary)
 fetch(ENDPOINT, {
   method: 'POST',
-  mode: 'no-cors',            // <<--- allows the browser to send the request even without CORS headers
+  mode: 'no-cors',            // <<--- important: allows the browser to send the POST despite CORS
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(payload)
 })
 .then(function(){
-  // no reliable response due to no-cors; assume success
+  // with no-cors the response is opaque; assume it succeeded
   status.textContent = 'Request sent — we will contact you soon. Thank you!';
   form.reset();
-  setTimeout(function(){ document.getElementById('pilotModalBackdrop').classList.remove('open'); }, 1200);
+  setTimeout(function(){ 
+    var b = document.getElementById('pilotModalBackdrop');
+    if (b) b.classList.remove('open');
+  }, 1200);
 })
 .catch(function(err){
   console.error('Submit error', err);
   status.textContent = 'Network error — please email nprosys@outlook.com';
 });
+
 
   // --- Wire dynamic prefill: set window._prefillProduct when .request-pilot clicked ---
   document.querySelectorAll('.request-pilot').forEach(function(btn){
@@ -535,3 +539,4 @@ fetch(ENDPOINT, {
 
 </body>
 </html>
+
